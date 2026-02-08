@@ -1,0 +1,23 @@
+{
+  "name": "invoice-generator",
+  "version": "1.0.0",
+  "description": "An AI invoice Generator Server",
+  "type": "module",
+  "main": "index.mjs",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon ./src/index.mjs"
+  },
+  "author": "Saravanan P",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "express-session": "^1.18.2",
+    "express-validator": "^7.3.1",
+    "mongoose": "^9.0.0",
+    "node-fetch": "^3.3.2"
+  }
+}
