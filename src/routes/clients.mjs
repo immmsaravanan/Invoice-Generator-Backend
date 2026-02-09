@@ -156,3 +156,35 @@ await ClientSchema.updateOne(
 );
 return res.status(200).json({status:true,message:"Deleted client address successfully",err:null})
 })
+
+router.post("/api/client/edit", async (req, res) => {
+  const ClientGSTIN = req.body.GSTIN;
+  const NewClientName = req.body.client_name;
+  const NewClientGSTIN = req.body.client_gstin;
+  const session = req.session.id;
+  const found = await CompanySchema.findOne({ session: session });
+    if (!found) {
+    return res
+      .status(200)
+      .json({ status: false, message: "Company not found refresh the page" });
+  }
+  const CompanyGSTIN = found.gstin;
+  const CompanyName = found.company_name;
+  const search = await ClientSchema.findOne({
+    client_gstin: ClientGSTIN,
+    company_gstin: CompanyGSTIN,
+  });
+  if (!search) {
+    return res
+      .status(200)
+      .json({ status: false, message: "Client not found refresh the page" });
+  }
+
+  await ClientSchema.updateOne(
+    {company_gstin:CompanyGSTIN,client_gstin:ClientGSTIN},
+    {
+    $set:{client_name:NewClientName,client_gstin:NewClientGSTIN}
+    }
+  )
+  return res.status(200).json({status:true,err:null})
+});
