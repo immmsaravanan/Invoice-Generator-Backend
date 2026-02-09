@@ -4,7 +4,7 @@ import { CompanySchema } from "../mongoose/schema/CompanySchema.mjs";
 
 export const router = Router();
 
-router.post("/api/add/client", async (req, res) => {
+router.post("/api/client/add", async (req, res) => {
   try {
     const ClientName = req.body.name;
     const ClientGSTIN = req.body.GSTIN;
@@ -87,7 +87,7 @@ router.post("/api/clients/get", async (req, res) => {
   }
 });
 
-router.post("/api/clients/edit", async (req, res) => {
+router.post("/api/client/edit", async (req, res) => {
   const ClientName = req.body.name;
   const ClientGSTIN = req.body.GSTIN;
   const AddressLine1 = req.body?.AddressLine1 || null;
@@ -116,20 +116,13 @@ router.post("/api/clients/edit", async (req, res) => {
   }
 
   const data = {
-    client_name: ClientName,
-    client_addresses: [
-      {
         address_line1: AddressLine1,
         address_line2: AddressLine2,
         address_line3: AddressLine3,
         state: State,
         state_code: Code,
-      },
-    ],
-    client_gstin: ClientGSTIN,
-    company_name: CompanyName,
-    company_gstin: CompanyGSTIN,
-  };
+      }
+
   await ClientSchema.updateOne(
     {company_gstin:CompanyGSTIN,client_gstin:ClientGSTIN},
     {
