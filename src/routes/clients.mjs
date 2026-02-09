@@ -26,9 +26,14 @@ router.post("/api/client/add", async (req, res) => {
         .status(200)
         .json({ status: false, message: "Client Already Existed" });
     }
-    const data = {
-      client_name: ClientName,
-      client_addresses: [
+    let client_addresses;
+    if(!AddressLine1 && !AddressLine2 && !AddressLine3 && !State && !Code)
+    {
+      client_addresses=null
+    }
+    else
+    {
+      client_addresses =[
         {
           address_line1: AddressLine1,
           address_line2: AddressLine2,
@@ -36,7 +41,11 @@ router.post("/api/client/add", async (req, res) => {
           state: State,
           state_code: Code,
         },
-      ],
+      ]
+    }
+   const data = {
+      client_name: ClientName,
+      client_addresses: client_addresses,
       client_gstin: ClientGSTIN,
       company_name: CompanyName,
       company_gstin: CompanyGSTIN,
@@ -93,6 +102,8 @@ router.post("/api/client/get", async (req, res) => {
 });
 
 router.post("/api/client/address/edit", async (req, res) => {
+  try
+  {
   const ClientName = req.body.name;
   const ClientGSTIN = req.body.GSTIN;
   const AddressLine1 = req.body?.AddressLine1 || null;
@@ -135,9 +146,15 @@ router.post("/api/client/address/edit", async (req, res) => {
     }
   )
   return res.status(200).json({status:true,err:null})
+  } 
+catch(err)
+{
+  return res.status(200).json({status:false,message:"Some error has been occurred while editing the client address data",err:err})
+}
 });
 
 router.delete("/api/client/addressess/delete",async(req,res)=>{
+try{
 const client_gstin = req.body.client_gstin
 const index = req.body.index
 const session = req.session.id
@@ -155,9 +172,15 @@ await ClientSchema.updateOne(
   { $pull: { client_addresses: null } }
 );
 return res.status(200).json({status:true,message:"Deleted client address successfully",err:null})
+} 
+catch(err)
+{
+  return res.status(200).json({status:false,message:"Some error has been occurred while deleting the client address data",err:err})
+}
 })
 
 router.post("/api/client/edit", async (req, res) => {
+  try{
   const ClientGSTIN = req.body.GSTIN;
   const NewClientName = req.body.client_name;
   const NewClientGSTIN = req.body.client_gstin;
@@ -187,4 +210,30 @@ router.post("/api/client/edit", async (req, res) => {
     }
   )
   return res.status(200).json({status:true,err:null})
+} 
+catch(err)
+{
+  return res.status(200).json({status:false,message:"Some error has been occurred while editing the client data",err:err})
+}
 });
+
+router.delete("/api/client/delete",async(req,res)=>{
+try{
+const client_gstin = req.body.client_gstin
+const index = req.body.index
+const session = req.session.id
+const found = await CompanySchema.findOne({session:session})
+if(!found)
+  return res.status(200).json({status:false,message:"Company not found please refresh the page"})
+const company_gstin = found.gstin
+const deleteClient = await ClientSchema.deleteOne({client_gstin:client_gstin,company_gstin:company_gstin})
+if(deleteClient)
+return res.status(200).json({status:true,message:"Deleted client address successfully",err:null})
+else
+  return res.status(200).json({status:false,message:"Some error has been occurred while deleting the client data"})
+}
+catch(err)
+{
+return res.status(200).json({status:false,message:"Some error has been occurred while deleting the client data",err:err})
+}
+})

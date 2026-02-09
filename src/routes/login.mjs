@@ -5,6 +5,7 @@ import { CompanySchema } from "../mongoose/schema/CompanySchema.mjs";
 import { DeHashPassword, HashPassword } from "../utils/bcrypt.mjs";
 export const router = Router();
 router.post("/api/login", checkSchema(LoginSchema), async (req, res) => {
+  try{
   const result = validationResult(req);
   if (!result.errors.length == 0) {
     console.log(result.errors)
@@ -29,9 +30,16 @@ router.post("/api/login", checkSchema(LoginSchema), async (req, res) => {
     session:req.session.id,
   });
   return res.status(200).json({ status: true, err: null });
+  } 
+catch(err)
+{
+  return res.status(200).json({status:false,message:"Some error has been occurred while login",err:err})
+}
 });
 
 router.post("/api/signup", checkSchema(SignupSchema), async (req, res) => {
+  try
+  {
   req.session.visited = true;
   if (req.body.password !== req.body.confirm_password) {
     return res
@@ -81,10 +89,17 @@ router.post("/api/signup", checkSchema(SignupSchema), async (req, res) => {
   const signup = new CompanySchema(data);
   signup.save();
   res.json({ status: true, err: null });
+  } 
+catch(err)
+{
+  return res.status(200).json({status:false,message:"Some error has been occurred while signup",err:err})
+}
 });
 
 router.post("/api/loggedin",async(req,res)=>
 {
+  try
+  {
   const logged= await CompanySchema.findOne({session:req.session.id})
 if(!logged)
 {
@@ -92,5 +107,10 @@ if(!logged)
 }
 else{
   return res.status(200).json({status:true})
+}
+} 
+catch(err)
+{
+  return res.status(200).json({status:false,message:"Some error has been occurred while ckecking login status",err:err})
 }
 })

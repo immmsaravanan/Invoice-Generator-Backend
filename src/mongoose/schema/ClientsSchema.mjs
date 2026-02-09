@@ -8,7 +8,6 @@ const Client = new mongoose.Schema([
  client_addresses:
  {
     type: [mongoose.Schema.Types.Mixed],
-    required: true
  },
     client_gstin: {
     type: mongoose.Schema.Types.String,
