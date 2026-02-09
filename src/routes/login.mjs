@@ -88,7 +88,7 @@ router.post("/api/loggedin",async(req,res)=>
   const logged= await CompanySchema.findOne({session:req.session.id})
 if(!logged)
 {
-  return res.status(404).json({status:false})
+  return res.status(200).json({status:false})
 }
 else{
   return res.status(200).json({status:true})

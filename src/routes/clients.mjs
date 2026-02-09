@@ -45,7 +45,7 @@ router.post("/api/client/add", async (req, res) => {
     Schema.save();
     res.status(200).json({ status: true, err: null });
   } catch (err) {
-    res.status(400).json({ status: false, err: err });
+    res.status(200).json({ status: false, err: err });
   }
 });
 
@@ -59,9 +59,9 @@ router.get("/api/clients", async (req, res) => {
       company_name: ComapnyName,
       company_gstin: CompanyGSTIN,
     });
-    res.status(200).json(fetchClients);
+    res.status(200).json({status: true,data: fetchClients, err:null});
   } catch (err) {
-    res.status(400).json({ status: false, err: err });
+    res.status(200).json({ status: false, err: err });
   }
 });
 
@@ -69,21 +69,26 @@ router.post("/api/clients/get", async (req, res) => {
   try {
     const ClientGSTIN = req.body.client_gstin;
     const ClientName = req.body.client_name;
-    const CompanyName = req.body.company_name;
-    const CompanyGSTIN = req.body.company_gstin;
+    const session = req.session.id;
+    const found = await CompanySchema.findOne({ session: session });
+    if(!found)
+      return res.status(200).json({status:false,message:"refresh the page company not found",err:null})
+    const CompanyGSTIN = found.gstin;
+    const CompanyName = found.company_name;
     const search = await ClientSchema.findOne({
       client_name: ClientName,
       client_gstin: ClientGSTIN,
       company_name: CompanyName,
       company_gstin: CompanyGSTIN,
     });
-    if (search) res.status(200).json(search);
+    if(search) 
+    {
+      return res.status(200).json({status:true, data:search, err:null});
+    }
     else
-      return res
-        .status(401)
-        .json({ status: false, message: "cannot find company" });
+      return res.status(200).json({ status: false, message: "cannot find company" });
   } catch (err) {
-    console / log(err);
+    console.log(err);
   }
 });
 
