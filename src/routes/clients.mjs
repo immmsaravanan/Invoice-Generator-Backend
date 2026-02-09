@@ -65,7 +65,7 @@ router.get("/api/clients", async (req, res) => {
   }
 });
 
-router.post("/api/clients/get", async (req, res) => {
+router.post("/api/client/get", async (req, res) => {
   try {
     const ClientGSTIN = req.body.client_gstin;
     const ClientName = req.body.client_name;
@@ -92,7 +92,7 @@ router.post("/api/clients/get", async (req, res) => {
   }
 });
 
-router.post("/api/client/edit", async (req, res) => {
+router.post("/api/client/address/edit", async (req, res) => {
   const ClientName = req.body.name;
   const ClientGSTIN = req.body.GSTIN;
   const AddressLine1 = req.body?.AddressLine1 || null;
@@ -136,3 +136,23 @@ router.post("/api/client/edit", async (req, res) => {
   )
   return res.status(200).json({status:true,err:null})
 });
+
+router.delete("/api/client/addressess/delete",async(req,res)=>{
+const client_gstin = req.body.client_gstin
+const index = req.body.index
+const session = req.session.id
+const found = await CompanySchema.findOne({session:session})
+if(!found)
+  return res.status(200).json({status:false,message:"Company not found please refresh the page"})
+const company_gstin = found.gstin
+await ClientSchema.updateOne(
+  { client_gstin, company_gstin },
+  { $unset: { [`client_addresses.${index}`]: 1 } }
+);
+
+await ClientSchema.updateOne(
+  { client_gstin, company_gstin },
+  { $pull: { client_addresses: null } }
+);
+return res.status(200).json({status:true,message:"Deleted client address successfully",err:null})
+})
