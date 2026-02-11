@@ -220,7 +220,6 @@ catch(err)
 router.delete("/api/client/delete",async(req,res)=>{
 try{
 const client_gstin = req.body.client_gstin
-const index = req.body.index
 const session = req.session.id
 const found = await CompanySchema.findOne({session:session})
 if(!found)
@@ -228,7 +227,7 @@ if(!found)
 const company_gstin = found.gstin
 const deleteClient = await ClientSchema.deleteOne({client_gstin:client_gstin,company_gstin:company_gstin})
 if(deleteClient)
-return res.status(200).json({status:true,message:"Deleted client address successfully",err:null})
+return res.status(200).json({status:true,message:"Deleted successfully",err:null})
 else
   return res.status(200).json({status:false,message:"Some error has been occurred while deleting the client data"})
 }
@@ -236,4 +235,57 @@ catch(err)
 {
 return res.status(200).json({status:false,message:"Some error has been occurred while deleting the client data",err:err})
 }
+})
+
+router.post("/api/client/address/add",async(req,res)=>{
+  try{
+const ClientGSTIN = req.body.GSTIN
+const AddressLine1 = req.body?.AddressLine1 || null;
+const AddressLine2 = req.body?.AddressLine2 || null;
+const AddressLine3 = req.body?.AddressLine3 || null;
+const State = req.body?.state || null;
+const Code = req.body?.code || null;
+const session = req.session.id
+const found = await CompanySchema.findOne({session:session})
+if(!found)
+  return res.status(200).json({status:false,message:"refresh the page company not found",err:null})
+const CompanyGSTIN = found.gstin
+let client_addresses;
+    if(!AddressLine1 && !AddressLine2 && !AddressLine3 && !State && !Code)
+    {
+      return res.status(200).json({status:false,message:"enter aleast one value to save",err:null})
+    }
+    else
+    {
+      client_addresses =
+        {
+          address_line1: AddressLine1,
+          address_line2: AddressLine2,
+          address_line3: AddressLine3,
+          state: State,
+          state_code: Code,
+        }
+    }
+const find = await ClientSchema.findOne({client_gstin:ClientGSTIN,company_gstin:CompanyGSTIN})
+if(!find)
+  return res.status(200).json({status:false,message:"refresh the page client not found",err:null})
+
+if(!find.client_addresses)
+{
+  await ClientSchema.updateOne(
+  {client_gstin:ClientGSTIN,company_gstin:CompanyGSTIN},
+  {$set:{client_addresses:[client_addresses]}}
+)
+  return res.status(200).json({status:true,message:"Successfully added the address"})
+}
+await ClientSchema.updateOne(
+  {client_gstin:ClientGSTIN,company_gstin:CompanyGSTIN},
+  {$push:{client_addresses:client_addresses}}
+)
+  return res.status(200).json({status:true,message:"Successfully added the address"})
+  }
+  catch(err)
+  {
+    return res.status(200).json({status:false,message:"some error has been occurred in the db while connnecting to database",err:err})
+  }
 })
