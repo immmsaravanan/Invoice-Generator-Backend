@@ -6,6 +6,7 @@ export const router = Router();
 
 router.post("/api/client/add", async (req, res) => {
   try {
+
     const ClientName = req.body.name;
     const ClientGSTIN = req.body.GSTIN;
     const AddressLine1 = req.body?.AddressLine1 || null;
@@ -74,20 +75,16 @@ router.get("/api/clients", async (req, res) => {
   }
 });
 
-router.post("/api/client/get", async (req, res) => {
+router.get("/api/client/get/:client_gstin", async (req, res) => {
   try {
-    const ClientGSTIN = req.body.client_gstin;
-    const ClientName = req.body.client_name;
+    const ClientGSTIN = req.params.client_gstin;
     const session = req.session.id;
     const found = await CompanySchema.findOne({ session: session });
     if(!found)
       return res.status(200).json({status:false,message:"refresh the page company not found",err:null})
     const CompanyGSTIN = found.gstin;
-    const CompanyName = found.company_name;
     const search = await ClientSchema.findOne({
-      client_name: ClientName,
       client_gstin: ClientGSTIN,
-      company_name: CompanyName,
       company_gstin: CompanyGSTIN,
     });
     if(search) 
@@ -104,7 +101,6 @@ router.post("/api/client/get", async (req, res) => {
 router.post("/api/client/address/edit", async (req, res) => {
   try
   {
-  const ClientName = req.body.name;
   const ClientGSTIN = req.body.GSTIN;
   const AddressLine1 = req.body?.AddressLine1 || null;
   const AddressLine2 = req.body?.AddressLine2 || null;
@@ -155,9 +151,9 @@ catch(err)
 
 router.delete("/api/client/addressess/delete",async(req,res)=>{
 try{
-const client_gstin = req.body.client_gstin
 const index = req.body.index
 const session = req.session.id
+const client_gstin = req.body.client_gstin
 const found = await CompanySchema.findOne({session:session})
 if(!found)
   return res.status(200).json({status:false,message:"Company not found please refresh the page"})
@@ -185,6 +181,7 @@ router.post("/api/client/edit", async (req, res) => {
   const NewClientName = req.body.client_name;
   const NewClientGSTIN = req.body.client_gstin;
   const session = req.session.id;
+  const id = req.body.id
   const found = await CompanySchema.findOne({ session: session });
     if (!found) {
     return res
@@ -192,7 +189,15 @@ router.post("/api/client/edit", async (req, res) => {
       .json({ status: false, message: "Company not found refresh the page" });
   }
   const CompanyGSTIN = found.gstin;
-  const CompanyName = found.company_name;
+  const exist = await ClientSchema.findOne({
+    client_gstin: NewClientGSTIN,
+    company_gstin: CompanyGSTIN,
+  });
+if(exist)
+{
+if(exist.id !== id)
+  return res.status(200).json({status:false,message:"The GSTIN already exist",err:null})
+} 
   const search = await ClientSchema.findOne({
     client_gstin: ClientGSTIN,
     company_gstin: CompanyGSTIN,
@@ -213,6 +218,7 @@ router.post("/api/client/edit", async (req, res) => {
 } 
 catch(err)
 {
+    console.log(err)
   return res.status(200).json({status:false,message:"Some error has been occurred while editing the client data",err:err})
 }
 });
@@ -229,10 +235,11 @@ const deleteClient = await ClientSchema.deleteOne({client_gstin:client_gstin,com
 if(deleteClient)
 return res.status(200).json({status:true,message:"Deleted successfully",err:null})
 else
-  return res.status(200).json({status:false,message:"Some error has been occurred while deleting the client data"})
+  return res.status(200).json({status:false,message:"Some error has been occurred while deleting the client data",err:deleteClient})
 }
 catch(err)
 {
+  console.log(err)
 return res.status(200).json({status:false,message:"Some error has been occurred while deleting the client data",err:err})
 }
 })
