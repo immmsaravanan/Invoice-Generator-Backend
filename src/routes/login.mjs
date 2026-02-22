@@ -3,9 +3,9 @@ import { LoginSchema, SignupSchema } from "../utils/validator-schema/LoginSchema
 import { checkSchema, validationResult, matchedData } from "express-validator";
 import { CompanySchema } from "../mongoose/schema/CompanySchema.mjs";
 import { DeHashPassword, HashPassword } from "../utils/bcrypt.mjs";
+import { asyncHandler } from "./errorHandler.mjs";
 export const router = Router();
-router.post("/api/login", checkSchema(LoginSchema), async (req, res) => {
-  try{
+router.post("/api/login", checkSchema(LoginSchema),asyncHandler(async (req, res) => {
   const result = validationResult(req);
   if (!result.errors.length == 0) {
     console.log(result.errors)
@@ -30,16 +30,9 @@ router.post("/api/login", checkSchema(LoginSchema), async (req, res) => {
     session:req.session.id,
   });
   return res.status(200).json({ status: true, err: null });
-  } 
-catch(err)
-{
-  return res.status(200).json({status:false,message:"Some error has been occurred while login",err:err})
-}
-});
+}));
 
-router.post("/api/signup", checkSchema(SignupSchema), async (req, res) => {
-  try
-  {
+router.post("/api/signup", checkSchema(SignupSchema), asyncHandler(async (req, res) => {
   req.session.visited = true;
   if (req.body.password !== req.body.confirm_password) {
     return res
@@ -89,18 +82,11 @@ router.post("/api/signup", checkSchema(SignupSchema), async (req, res) => {
   const signup = new CompanySchema(data);
   signup.save();
   res.json({ status: true, err: null });
-  } 
-catch(err)
-{
-  return res.status(200).json({status:false,message:"Some error has been occurred while signup",err:err})
-}
-});
+}));
 
-router.post("/api/loggedin",async(req,res)=>
+router.post("/api/loggedin",asyncHandler(async(req,res)=>
 {
-  try
-  {
-  const logged= await CompanySchema.findOne({session:req.session.id})
+const logged= await CompanySchema.findOne({session:req.session.id})
 if(!logged)
 {
   return res.status(200).json({status:false})
@@ -108,9 +94,14 @@ if(!logged)
 else{
   return res.status(200).json({status:true})
 }
-} 
-catch(err)
-{
-  return res.status(200).json({status:false,message:"Some error has been occurred while ckecking login status",err:err})
-}
-})
+}))
+
+router.delete("/api/logout",asyncHandler(async(req,res)=>{
+  const session = req.session.id
+  await CompanySchema.updateOne(
+    {session:session},
+    {$set:{session:null}}
+  )
+  .then(()=>{return res.status(200).json({status:true,data:null,message:"Logged Out Successfully"})})
+  .catch(()=>{return res.status(400).json({status:false,err:err,message:"some error has beeen occurred refresh the page"})})
+}))

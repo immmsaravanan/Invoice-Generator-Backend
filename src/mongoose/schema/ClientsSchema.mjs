@@ -11,7 +11,8 @@ const Client = new mongoose.Schema([
  },
     client_gstin: {
     type: mongoose.Schema.Types.String,
-    required: true
+    required: true,
+    unique: true,
   },
     company_name: {
     type: mongoose.Schema.Types.String,

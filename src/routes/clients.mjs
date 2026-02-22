@@ -1,12 +1,10 @@
 import { Router } from "express";
 import { ClientSchema } from "../mongoose/schema/ClientsSchema.mjs";
 import { CompanySchema } from "../mongoose/schema/CompanySchema.mjs";
-
+import { asyncHandler } from "./errorHandler.mjs";
 export const router = Router();
 
-router.post("/api/client/add", async (req, res) => {
-  try {
-
+router.post("/api/client/add", asyncHandler(async (req, res) => {
     const ClientName = req.body.name;
     const ClientGSTIN = req.body.GSTIN;
     const AddressLine1 = req.body?.AddressLine1 || null;
@@ -54,13 +52,10 @@ router.post("/api/client/add", async (req, res) => {
     const Schema = new ClientSchema(data);
     Schema.save();
     res.status(200).json({ status: true, err: null });
-  } catch (err) {
-    res.status(200).json({ status: false, err: err });
-  }
-});
+}));
 
-router.get("/api/clients", async (req, res) => {
-  try {
+router.get("/api/clients", asyncHandler(async (req, res) => {
+
     const session = req.session.id;
     const search = await CompanySchema.findOne({ session: session });
     const ComapnyName = search.company_name;
@@ -70,13 +65,10 @@ router.get("/api/clients", async (req, res) => {
       company_gstin: CompanyGSTIN,
     });
     res.status(200).json({status: true,data: fetchClients, err:null});
-  } catch (err) {
-    res.status(200).json({ status: false, err: err });
-  }
-});
+}));
 
-router.get("/api/client/get/:client_gstin", async (req, res) => {
-  try {
+router.get("/api/client/get/:client_gstin", asyncHandler(async (req, res) => {
+
     const ClientGSTIN = req.params.client_gstin;
     const session = req.session.id;
     const found = await CompanySchema.findOne({ session: session });
@@ -93,14 +85,10 @@ router.get("/api/client/get/:client_gstin", async (req, res) => {
     }
     else
       return res.status(200).json({ status: false, message: "cannot find company" });
-  } catch (err) {
-    console.log(err);
-  }
-});
+}));
 
-router.post("/api/client/address/edit", async (req, res) => {
-  try
-  {
+router.post("/api/client/address/edit", asyncHandler(async (req, res) => {
+
   const ClientGSTIN = req.body.GSTIN;
   const AddressLine1 = req.body?.AddressLine1 || null;
   const AddressLine2 = req.body?.AddressLine2 || null;
@@ -142,15 +130,9 @@ router.post("/api/client/address/edit", async (req, res) => {
     }
   )
   return res.status(200).json({status:true,err:null})
-  } 
-catch(err)
-{
-  return res.status(200).json({status:false,message:"Some error has been occurred while editing the client address data",err:err})
-}
-});
+}));
 
-router.delete("/api/client/addressess/delete",async(req,res)=>{
-try{
+router.delete("/api/client/addressess/delete",asyncHandler(async(req,res)=>{
 const index = req.body.index
 const session = req.session.id
 const client_gstin = req.body.client_gstin
@@ -168,15 +150,9 @@ await ClientSchema.updateOne(
   { $pull: { client_addresses: null } }
 );
 return res.status(200).json({status:true,message:"Deleted client address successfully",err:null})
-} 
-catch(err)
-{
-  return res.status(200).json({status:false,message:"Some error has been occurred while deleting the client address data",err:err})
-}
-})
+}))
 
-router.post("/api/client/edit", async (req, res) => {
-  try{
+router.post("/api/client/edit",asyncHandler(async (req, res) => {
   const ClientGSTIN = req.body.GSTIN;
   const NewClientName = req.body.client_name;
   const NewClientGSTIN = req.body.client_gstin;
@@ -215,16 +191,9 @@ if(exist.id !== id)
     }
   )
   return res.status(200).json({status:true,err:null})
-} 
-catch(err)
-{
-    console.log(err)
-  return res.status(200).json({status:false,message:"Some error has been occurred while editing the client data",err:err})
-}
-});
+}));
 
-router.delete("/api/client/delete",async(req,res)=>{
-try{
+router.delete("/api/client/delete",asyncHandler(async(req,res)=>{
 const client_gstin = req.body.client_gstin
 const session = req.session.id
 const found = await CompanySchema.findOne({session:session})
@@ -236,16 +205,9 @@ if(deleteClient)
 return res.status(200).json({status:true,message:"Deleted successfully",err:null})
 else
   return res.status(200).json({status:false,message:"Some error has been occurred while deleting the client data",err:deleteClient})
-}
-catch(err)
-{
-  console.log(err)
-return res.status(200).json({status:false,message:"Some error has been occurred while deleting the client data",err:err})
-}
-})
+}))
 
-router.post("/api/client/address/add",async(req,res)=>{
-  try{
+router.post("/api/client/address/add",asyncHandler(async(req,res)=>{
 const ClientGSTIN = req.body.GSTIN
 const AddressLine1 = req.body?.AddressLine1 || null;
 const AddressLine2 = req.body?.AddressLine2 || null;
@@ -290,9 +252,4 @@ await ClientSchema.updateOne(
   {$push:{client_addresses:client_addresses}}
 )
   return res.status(200).json({status:true,message:"Successfully added the address"})
-  }
-  catch(err)
-  {
-    return res.status(200).json({status:false,message:"some error has been occurred in the db while connnecting to database",err:err})
-  }
-})
+}))
